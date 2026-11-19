@@ -10,9 +10,9 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.AudioAttributes
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.app.Person
 import androidx.core.content.ContextCompat
 import com.example.MainActivity
 import com.example.R
@@ -51,7 +51,7 @@ class AppNotificationManager(private val context: Context) {
     fun ensureChannels(settings: NotificationSettings = NotificationSettings()) {
         ensureServiceChannel()
         ensureChatChannel(settings.chatToneId, settings.vibrationEnabled)
-        ensureCallChannel(settings.callToneId, settings.vibrationEnabled)
+        ensureCallChannel(settings.vibrationEnabled)
     }
 
     fun ensureChatChannel(toneId: String, vibrate: Boolean): String {
@@ -86,25 +86,25 @@ class AppNotificationManager(private val context: Context) {
         return channelId
     }
 
-    fun ensureCallChannel(toneId: String, vibrate: Boolean): String {
-        val channelId = callChannelId(toneId, vibrate)
+    /**
+     * Incoming call heads-up channel.
+     * Sound is driven directly by NotificationTonePlayer inside PartnerNotificationService
+     * (MediaPlayer + AudioFocus + looping) so the ringtone is 100% audible across all devices
+     * and while other apps are open without double-audio echo.
+     */
+    fun ensureCallChannel(vibrate: Boolean): String {
+        val channelId = callChannelId(vibrate)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return channelId
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return channelId
 
         if (manager.getNotificationChannel(channelId) == null) {
-            val soundUri = ToneCatalog.resolvePlayableUri(context, toneId, ToneCategory.CALL)
-            val audioAttrs = AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                .build()
-
             val channel = NotificationChannel(
                 channelId,
                 context.getString(R.string.notif_channel_call_name),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = context.getString(R.string.notif_channel_call_desc)
-                setSound(soundUri, audioAttrs)
+                setSound(null, null)
                 enableVibration(vibrate)
                 if (vibrate) {
                     vibrationPattern = longArrayOf(0L, 450L, 350L, 450L)
@@ -210,6 +210,8 @@ class AppNotificationManager(private val context: Context) {
 
         runCatching {
             NotificationManagerCompat.from(context).notify(chatNotificationId(chatId), builder.build())
+        }.onFailure { err ->
+            Log.e(TAG, "Failed posting chat notification: ${err.message}", err)
         }
     }
 
@@ -223,27 +225,23 @@ class AppNotificationManager(private val context: Context) {
         callId: String,
         callerName: String,
         callType: CallType,
-        toneId: String = ToneCatalog.DEFAULT_CALL_TONE_ID,
         vibrate: Boolean = true,
-        isTestPreview: Boolean = false,
-        silentUpdate: Boolean = false
+        isTestPreview: Boolean = false
     ) {
         if (!canPostNotifications()) return
-        val channelId = ensureCallChannel(toneId, vibrate)
-        val soundUri = ToneCatalog.resolvePlayableUri(context, toneId, ToneCategory.CALL)
+        val channelId = ensureCallChannel(vibrate)
 
         val openIntent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
             putExtra(EXTRA_CALL_ID, callId)
             putExtra(EXTRA_CALL_ACTION, ACTION_CALL_OPEN)
         }
         val acceptIntent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
             putExtra(EXTRA_CALL_ID, callId)
             putExtra(EXTRA_CALL_ACTION, ACTION_CALL_ACCEPT)
         }
 
-        // Handle Decline directly via BroadcastReceiver so users in other apps can reject calls instantly
         val declineIntent = Intent(context, CallNotificationActionReceiver::class.java).apply {
             action = CallNotificationActionReceiver.ACTION_DECLINE_CALL
             putExtra(EXTRA_CALL_ID, callId)
@@ -276,45 +274,28 @@ class AppNotificationManager(private val context: Context) {
             context.getString(R.string.call_incoming_voice)
         }
 
-        val callerPerson = Person.Builder()
-            .setName(callerName)
-            .setImportant(true)
-            .build()
-
-        val builder = NotificationCompat.Builder(context, channelId)
+        // Standard high-priority notification with Accept & Decline actions works cleanly on all Android
+        // versions including Android 14/15/16 without throwing CallStyle fullScreenIntent exceptions.
+        val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(callerName)
             .setContentText(subtitle)
+            .setStyle(NotificationCompat.BigTextStyle().bigText("$callerName — $subtitle"))
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_CALL)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(!isTestPreview)
             .setAutoCancel(isTestPreview)
+            .setOnlyAlertOnce(false)
             .setContentIntent(openPending)
-            .setStyle(
-                NotificationCompat.CallStyle.forIncomingCall(
-                    callerPerson,
-                    declinePending,
-                    acceptPending
-                ).setIsVideo(callType == CallType.VIDEO)
-            )
-
-        if (silentUpdate || (ToneCatalog.isSilent(toneId) && !vibrate)) {
-            builder.setSilent(true)
-        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            builder.setSound(soundUri)
-            if (vibrate) {
-                builder.setVibrate(longArrayOf(0L, 450L, 350L, 450L))
-            }
-        }
-
-        val notification = builder.build()
-        if (!silentUpdate && !ToneCatalog.isSilent(toneId)) {
-            notification.flags = notification.flags or Notification.FLAG_INSISTENT
-        }
+            .addAction(android.R.drawable.ic_menu_call, context.getString(R.string.call_accept), acceptPending)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, context.getString(R.string.call_decline), declinePending)
+            .build()
 
         runCatching {
             NotificationManagerCompat.from(context).notify(INCOMING_CALL_NOTIFICATION_ID, notification)
+        }.onFailure { err ->
+            Log.e(TAG, "Failed posting incoming call notification: ${err.message}", err)
         }
     }
 
@@ -329,8 +310,8 @@ class AppNotificationManager(private val context: Context) {
         return "${CHAT_CHANNEL_PREFIX}$key"
     }
 
-    private fun callChannelId(toneId: String, vibrate: Boolean): String {
-        val key = "${toneId}_v$vibrate".hashCode().toUInt().toString(16)
+    private fun callChannelId(vibrate: Boolean): String {
+        val key = "call_v3_v$vibrate".hashCode().toUInt().toString(16)
         return "${CALL_CHANNEL_PREFIX}$key"
     }
 
@@ -339,6 +320,8 @@ class AppNotificationManager(private val context: Context) {
     }
 
     companion object {
+        private const val TAG = "AppNotificationManager"
+
         const val CHANNEL_SERVICE_ID = "partner_bank_bg_service_v1"
         private const val LEGACY_CHANNEL_CHAT_ID = "partner_bank_chat_alerts_v1"
         private const val LEGACY_CHANNEL_CALL_ID = "partner_bank_call_alerts_v1"

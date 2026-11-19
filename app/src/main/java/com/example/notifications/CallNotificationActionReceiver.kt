@@ -25,6 +25,9 @@ class CallNotificationActionReceiver : BroadcastReceiver() {
         val callId = intent.getStringExtra(AppNotificationManager.EXTRA_CALL_ID)
         val isTestPreview = intent.getBooleanExtra(AppNotificationManager.EXTRA_IS_TEST_PREVIEW, false)
 
+        // Immediately stop ringtone in PartnerNotificationService & dismiss notification
+        AppSessionState.muteRingingCall(callId ?: "test_call_preview")
+        PartnerNotificationService.stopActiveRingtone(context)
         val notificationManager = AppNotificationManager(context.applicationContext)
         notificationManager.cancelIncomingCallNotification()
 

@@ -381,12 +381,17 @@ fun SapaChatHomeApp(
             is NotificationLaunchAction.CallAction -> {
                 if (action.callId == "test_call_preview") {
                     isTestingCallBanner = false
+                    PartnerNotificationService.stopActiveRingtone(context)
                     resolvedTonePlayer.stopIncomingCallRingtone()
                     resolvedNotificationManager.cancelIncomingCallNotification()
                     onConsumeNotificationAction()
                 } else if (callsList.any { it.id == action.callId }) {
-                    resolvedTonePlayer.stopIncomingCallRingtone()
-                    resolvedNotificationManager.cancelIncomingCallNotification()
+                    if (action.action != AppNotificationManager.ACTION_CALL_OPEN) {
+                        AppSessionState.muteRingingCall(action.callId)
+                        PartnerNotificationService.stopActiveRingtone(context)
+                        resolvedTonePlayer.stopIncomingCallRingtone()
+                        resolvedNotificationManager.cancelIncomingCallNotification()
+                    }
                     viewModel.handleCallNotificationAction(action.callId, action.action)
                     onConsumeNotificationAction()
                 }
@@ -476,17 +481,15 @@ fun SapaChatHomeApp(
         if (ringing != null && notificationSettings.callNotificationsEnabled) {
             isTestingCallBanner = false
             if (resolvedNotificationManager.canPostNotifications()) {
-                resolvedTonePlayer.stopIncomingCallRingtone()
                 resolvedNotificationManager.showIncomingCallNotification(
                     callId = ringing.id,
                     callerName = ringing.peerName(viewModel.currentUserId),
                     callType = ringing.parsedType,
-                    toneId = notificationSettings.callToneId,
                     vibrate = notificationSettings.vibrationEnabled,
-                    isTestPreview = false,
-                    silentUpdate = incomingCallRingtoneMuted
+                    isTestPreview = false
                 )
-            } else if (!incomingCallRingtoneMuted) {
+            }
+            if (!incomingCallRingtoneMuted) {
                 resolvedTonePlayer.startIncomingCallRingtone(
                     toneId = notificationSettings.callToneId,
                     vibrate = notificationSettings.vibrationEnabled
@@ -497,6 +500,18 @@ fun SapaChatHomeApp(
         } else if (!isTestingCallBanner) {
             resolvedTonePlayer.stopIncomingCallRingtone()
             resolvedNotificationManager.cancelIncomingCallNotification()
+        }
+    }
+
+    // Stop test call ringtone immediately if dismissed from the notification shade while in another app
+    LaunchedEffect(Unit) {
+        AppSessionState.mutedRingingCallId.collect { mutedId ->
+            if (mutedId == "test_call_preview" && isTestingCallBanner) {
+                isTestingCallBanner = false
+                resolvedTonePlayer.stopIncomingCallRingtone()
+                resolvedNotificationManager.cancelIncomingCallNotification()
+                AppSessionState.muteRingingCall(null)
+            }
         }
     }
 
@@ -542,16 +557,19 @@ fun SapaChatHomeApp(
             onMuteRingtone = {
                 incomingCallRingtoneMuted = true
                 AppSessionState.muteRingingCall(incomingOrActiveCall.id)
+                PartnerNotificationService.stopActiveRingtone(context)
                 resolvedTonePlayer.stopIncomingCallRingtone()
             },
             onAccept = {
                 AppSessionState.muteRingingCall(null)
+                PartnerNotificationService.stopActiveRingtone(context)
                 resolvedTonePlayer.stopIncomingCallRingtone()
                 resolvedNotificationManager.cancelIncomingCallNotification()
                 viewModel.acceptCall(incomingOrActiveCall)
             },
             onDecline = {
                 AppSessionState.muteRingingCall(null)
+                PartnerNotificationService.stopActiveRingtone(context)
                 resolvedTonePlayer.stopIncomingCallRingtone()
                 resolvedNotificationManager.cancelIncomingCallNotification()
                 viewModel.declineCall(incomingOrActiveCall)
@@ -1103,7 +1121,7 @@ fun SapaChatHomeApp(
             onSelectCallTone = { id, title ->
                 scope.launch {
                     resolvedNotificationPrefs.setCallTone(id, title)
-                    resolvedNotificationManager.ensureCallChannel(id, notificationSettings.vibrationEnabled)
+                    resolvedNotificationManager.ensureCallChannel(notificationSettings.vibrationEnabled)
                 }
             },
             onTestChatNotification = {
@@ -1144,16 +1162,14 @@ fun SapaChatHomeApp(
                             callId = "test_call_preview",
                             callerName = "Partner Bank (Uji Panggilan)",
                             callType = CallType.VIDEO,
-                            toneId = notificationSettings.callToneId,
                             vibrate = notificationSettings.vibrationEnabled,
                             isTestPreview = true
                         )
-                    } else {
-                        resolvedTonePlayer.startIncomingCallRingtone(
-                            toneId = notificationSettings.callToneId,
-                            vibrate = notificationSettings.vibrationEnabled
-                        )
                     }
+                    resolvedTonePlayer.startIncomingCallRingtone(
+                        toneId = notificationSettings.callToneId,
+                        vibrate = notificationSettings.vibrationEnabled
+                    )
                 }
             },
             onDismiss = { showNotificationSettingsSheet = false }

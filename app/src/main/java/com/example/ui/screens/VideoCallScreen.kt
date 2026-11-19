@@ -268,12 +268,18 @@ fun VideoCallScreen(
     val audioManager = remember(context) {
         context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
     }
-    DisposableEffect(micMuted, speakerOn) {
+    DisposableEffect(isIncomingRinging, micMuted, speakerOn) {
         runCatching {
-            audioManager?.mode = AudioManager.MODE_IN_COMMUNICATION
-            audioManager?.isMicrophoneMute = micMuted
-            @Suppress("DEPRECATION")
-            audioManager?.isSpeakerphoneOn = speakerOn
+            if (isIncomingRinging) {
+                // Keep normal audio mode while ringing so MediaPlayer ringtone plays clearly on speaker
+                audioManager?.mode = AudioManager.MODE_NORMAL
+                audioManager?.isMicrophoneMute = false
+            } else {
+                audioManager?.mode = AudioManager.MODE_IN_COMMUNICATION
+                audioManager?.isMicrophoneMute = micMuted
+                @Suppress("DEPRECATION")
+                audioManager?.isSpeakerphoneOn = speakerOn
+            }
         }
         onDispose { }
     }

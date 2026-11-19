@@ -125,6 +125,13 @@ class PartnerNotificationService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         promoteToForeground()
+        when (intent?.action) {
+            ACTION_STOP_RINGTONE -> {
+                tonePlayer.stopIncomingCallRingtone()
+                notificationManager.cancelIncomingCallNotification()
+                return START_STICKY
+            }
+        }
         serviceScope.launch {
             val uid = Firebase.auth.currentUser?.uid
             if (uid.isNullOrBlank()) {
@@ -347,30 +354,28 @@ class PartnerNotificationService : Service() {
 
         val callerName = ringing.peerName(uid)
         if (notificationManager.canPostNotifications()) {
-            tonePlayer.stopIncomingCallRingtone()
             notificationManager.showIncomingCallNotification(
                 callId = ringing.id,
                 callerName = callerName,
                 callType = ringing.parsedType,
-                toneId = settings.callToneId,
                 vibrate = settings.vibrationEnabled,
-                isTestPreview = false,
-                silentUpdate = isMuted
+                isTestPreview = false
             )
+        }
+
+        if (isMuted) {
+            tonePlayer.stopIncomingCallRingtone()
         } else {
-            if (isMuted) {
-                tonePlayer.stopIncomingCallRingtone()
-            } else {
-                tonePlayer.startIncomingCallRingtone(
-                    toneId = settings.callToneId,
-                    vibrate = settings.vibrationEnabled
-                )
-            }
+            tonePlayer.startIncomingCallRingtone(
+                toneId = settings.callToneId,
+                vibrate = settings.vibrationEnabled
+            )
         }
     }
 
     companion object {
         private const val TAG = "PartnerNotifService"
+        const val ACTION_STOP_RINGTONE = "com.example.notifications.ACTION_STOP_RINGTONE"
 
         fun syncServiceState(context: Context, isSignedIn: Boolean, shouldRun: Boolean) {
             val appCtx = context.applicationContext
@@ -385,6 +390,17 @@ class PartnerNotificationService : Service() {
                 runCatching {
                     appCtx.stopService(serviceIntent)
                 }
+            }
+        }
+
+        fun stopActiveRingtone(context: Context) {
+            if (!AppSessionState.isBackgroundServiceRunning.value) return
+            val appCtx = context.applicationContext
+            runCatching {
+                val intent = Intent(appCtx, PartnerNotificationService::class.java).apply {
+                    action = ACTION_STOP_RINGTONE
+                }
+                appCtx.startService(intent)
             }
         }
     }

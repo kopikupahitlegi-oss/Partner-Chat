@@ -1,0 +1,200 @@
+{
+  "entities": {
+    "PrivateUser": {
+      "title": "PrivateUser",
+      "description": "Private user account metadata including PII isolated strictly to the account owner.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Firebase Auth UID matching document ID" },
+        "pathnerId": { "type": "string", "description": "Unique human-friendly Pathner ID handle (3..32 lowercase alphanumeric/underscore/dash, optional)" },
+        "email": { "type": "string", "description": "User email address (optional, PII)" },
+        "displayName": { "type": "string", "description": "Display name" },
+        "photoUrl": { "type": "string", "description": "Profile avatar URL (optional)" },
+        "photoData": { "type": "string", "description": "Compressed Base64 custom avatar stored in Firestore (optional)" },
+        "statusText": { "type": "string", "description": "Custom WhatsApp-style bio/status" },
+        "discoverable": { "type": "boolean", "description": "Whether user appears in public contacts directory" },
+        "hiddenChatIds": { "type": "array", "description": "Chat room IDs deleted/hidden by this user (optional)" },
+        "hiddenCallIds": { "type": "array", "description": "Call log IDs deleted/hidden by this user (optional)" },
+        "hiddenContactUids": { "type": "array", "description": "Contact user UIDs deleted/hidden from this user's contacts list (optional)" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp (FieldValue.serverTimestamp())" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp (FieldValue.serverTimestamp())" }
+      },
+      "required": ["userId", "displayName", "statusText", "discoverable", "createdAt", "updatedAt"]
+    },
+    "PublicProfile": {
+      "title": "PublicProfile",
+      "description": "Public discoverable profile without PII for finding contacts and starting chats/calls.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Firebase Auth UID matching document ID" },
+        "pathnerId": { "type": "string", "description": "Unique human-friendly Pathner ID handle (3..32 lowercase alphanumeric/underscore/dash, optional)" },
+        "displayName": { "type": "string", "description": "Public display name" },
+        "photoUrl": { "type": "string", "description": "Avatar URL (optional)" },
+        "photoData": { "type": "string", "description": "Compressed Base64 custom avatar stored in Firestore (optional)" },
+        "statusText": { "type": "string", "description": "Bio or status text" },
+        "discoverable": { "type": "boolean", "description": "Opt-in flag for public contact discovery" },
+        "online": { "type": "boolean", "description": "Active presence flag" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp (FieldValue.serverTimestamp())" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp (FieldValue.serverTimestamp())" }
+      },
+      "required": ["userId", "displayName", "statusText", "discoverable", "online", "createdAt", "updatedAt"]
+    },
+    "PathnerIdReservation": {
+      "title": "PathnerIdReservation",
+      "description": "Unique Pathner ID handle mapping to a Firebase Auth UID with zero PII.",
+      "type": "object",
+      "properties": {
+        "pathnerId": { "type": "string", "description": "Normalized unique Pathner ID matching document ID" },
+        "userId": { "type": "string", "description": "Owner Firebase Auth UID" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp" }
+      },
+      "required": ["pathnerId", "userId", "createdAt", "updatedAt"]
+    },
+    "ChatRoom": {
+      "title": "ChatRoom",
+      "description": "Direct, saved-notes, or group conversation room.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Optional group or room title" },
+        "groupChat": { "type": "boolean", "description": "True if group chat, false for direct/self chat" },
+        "createdBy": { "type": "string", "description": "Creator UID" },
+        "participantUids": { "type": "array", "description": "Bounded list of participant UIDs (1..20)" },
+        "participantNames": { "type": "object", "description": "Map of UID to display name" },
+        "participantPhotos": { "type": "object", "description": "Map of UID to avatar URL" },
+        "lastMessageText": { "type": "string", "description": "Preview text of most recent message" },
+        "lastMessageType": { "type": "string", "enum": ["TEXT", "IMAGE", "VIDEO", "AUDIO", "FILE", "CALL"] },
+        "lastMessageSenderId": { "type": "string", "description": "UID of last sender (optional)" },
+        "lastMessageAt": { "type": "string", "format": "date-time", "description": "Server timestamp of latest message" },
+        "lastMessageDeliveredAt": { "type": "string", "format": "date-time", "description": "Server timestamp when latest message was delivered to a peer (optional)" },
+        "lastMessageReadAt": { "type": "string", "format": "date-time", "description": "Server timestamp when latest message was read by a peer (optional)" },
+        "typingUsers": { "type": "object", "description": "Map of participant UID to last typing server timestamp (optional)" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp" }
+      },
+      "required": [
+        "groupChat",
+        "createdBy",
+        "participantUids",
+        "lastMessageText",
+        "lastMessageType",
+        "lastMessageAt",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "Single message inside a chat supporting text, images, videos, files, and call events.",
+      "type": "object",
+      "properties": {
+        "chatId": { "type": "string", "description": "Parent chat ID" },
+        "senderId": { "type": "string", "description": "Sender UID" },
+        "senderName": { "type": "string", "description": "Sender display name" },
+        "participantUids": { "type": "array", "description": "Denormalized participant UIDs matching parent chat" },
+        "messageType": { "type": "string", "enum": ["TEXT", "IMAGE", "VIDEO", "AUDIO", "FILE", "CALL"] },
+        "text": { "type": "string", "description": "Message body or caption" },
+        "fileName": { "type": "string", "description": "Attachment filename (optional)" },
+        "mimeType": { "type": "string", "description": "Attachment MIME type (optional)" },
+        "fileSizeBytes": { "type": "integer", "description": "Attachment size in bytes (optional)" },
+        "durationMs": { "type": "integer", "description": "Video/call duration in milliseconds (optional)" },
+        "mediaUrl": { "type": "string", "description": "Firebase Storage HTTPS download URL for uploaded media (optional)" },
+        "mediaData": { "type": "string", "description": "Base64 synced image or small attachment payload fallback (optional)" },
+        "thumbnailData": { "type": "string", "description": "Base64 compressed video poster frame (optional)" },
+        "localFilePath": { "type": "string", "description": "Sender local cached file path hint (optional)" },
+        "replyToMessageId": { "type": "string", "description": "Quoted message ID (optional)" },
+        "replyToSenderName": { "type": "string", "description": "Quoted sender name (optional)" },
+        "replyToPreview": { "type": "string", "description": "Quoted message snippet (optional)" },
+        "sentAt": { "type": "string", "format": "date-time", "description": "Server timestamp when message was sent and acknowledged by Firestore (optional)" },
+        "deliveredToUids": { "type": "array", "description": "List of participant UIDs whose device received this message (optional)" },
+        "deliveredAt": { "type": "string", "format": "date-time", "description": "Server timestamp when message was first delivered to a peer (optional)" },
+        "readByUids": { "type": "array", "description": "List of participant UIDs who read this message" },
+        "readAt": { "type": "string", "format": "date-time", "description": "Server timestamp when message was read by a peer (optional)" },
+        "forwarded": { "type": "boolean", "description": "True when message was forwarded from another chat (optional)" },
+        "hiddenForUids": { "type": "array", "description": "List of participant UIDs who deleted this message only for themselves (optional)" },
+        "deleted": { "type": "boolean", "description": "Soft-deleted tombstone flag" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp" }
+      },
+      "required": [
+        "chatId",
+        "senderId",
+        "senderName",
+        "participantUids",
+        "messageType",
+        "text",
+        "readByUids",
+        "deleted",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CallSession": {
+      "title": "CallSession",
+      "description": "Real-time video or voice call signaling record and call history entry.",
+      "type": "object",
+      "properties": {
+        "chatId": { "type": "string", "description": "Associated chat room ID" },
+        "callerId": { "type": "string", "description": "Caller UID" },
+        "callerName": { "type": "string", "description": "Caller display name" },
+        "callerPhotoUrl": { "type": "string", "description": "Caller photo URL (optional)" },
+        "calleeId": { "type": "string", "description": "Callee UID" },
+        "calleeName": { "type": "string", "description": "Callee display name" },
+        "calleePhotoUrl": { "type": "string", "description": "Callee photo URL (optional)" },
+        "participantUids": { "type": "array", "description": "Caller and callee UIDs (1..2)" },
+        "callType": { "type": "string", "enum": ["VIDEO", "VOICE"] },
+        "status": { "type": "string", "enum": ["RINGING", "ACTIVE", "ENDED", "DECLINED", "MISSED"] },
+        "callerCameraOn": { "type": "boolean", "description": "Caller camera toggle" },
+        "callerMuted": { "type": "boolean", "description": "Caller mic mute toggle" },
+        "calleeCameraOn": { "type": "boolean", "description": "Callee camera toggle" },
+        "calleeMuted": { "type": "boolean", "description": "Callee mic mute toggle" },
+        "durationSeconds": { "type": "integer", "description": "Call duration in seconds" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp" }
+      },
+      "required": [
+        "chatId",
+        "callerId",
+        "callerName",
+        "calleeId",
+        "calleeName",
+        "participantUids",
+        "callType",
+        "status",
+        "callerCameraOn",
+        "callerMuted",
+        "calleeCameraOn",
+        "calleeMuted",
+        "durationSeconds",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/PrivateUser" },
+      "description": "Owner-isolated private user settings and email PII."
+    },
+    "/public_profiles/{userId}": {
+      "schema": { "$ref": "#/entities/PublicProfile" },
+      "description": "Public discoverable profiles with zero PII for contact lookup."
+    },
+    "/pathner_ids/{pathnerId}": {
+      "schema": { "$ref": "#/entities/PathnerIdReservation" },
+      "description": "Unique Pathner ID handle directory mapping normalized IDs to owner UIDs."
+    },
+    "/chats/{chatId}": {
+      "schema": { "$ref": "#/entities/ChatRoom" },
+      "description": "Direct and group chat rooms scoped to participantUids."
+    },
+    "/chats/{chatId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/ChatMessage" },
+      "description": "Messages belonging to a chat room with denormalized participantUids."
+    },
+    "/calls/{callId}": {
+      "schema": { "$ref": "#/entities/CallSession" },
+      "description": "Video and voice call signaling sessions and call log entries."
+    }
+  }
+}

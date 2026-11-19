@@ -1,0 +1,262 @@
+<resources>
+    <string name="app_name">Partner Bank</string>
+
+    <!-- Auth Screen -->
+    <string name="auth_headline">Ngobrol, Berbagi File &amp; Video Call Tanpa Batas</string>
+    <string name="auth_subtitle">Kirim pesan real-time, foto, video, dokumen, hingga panggilan video jernih bersama teman dan keluarga.</string>
+    <string name="auth_tab_login">Masuk</string>
+    <string name="auth_tab_register">Daftar</string>
+    <string name="auth_login_title">Masuk dengan ID User</string>
+    <string name="auth_login_desc">Masukkan ID User yang telah Anda buat saat mendaftar, lalu verifikasi cepat dengan Google.</string>
+    <string name="auth_register_title">Buat ID User Baru</string>
+    <string name="auth_register_desc">Tentukan ID unik Anda sendiri atau buat otomatis. ID ini yang nantinya digunakan untuk masuk ke Partner Bank.</string>
+    <string name="auth_id_label">ID User Partner Bank</string>
+    <string name="auth_register_id_label">Buat ID User Anda</string>
+    <string name="auth_id_hint">budi_01 atau tp_4821ab</string>
+    <string name="auth_id_helper">3–32 karakter: huruf kecil, angka, _ atau -</string>
+    <string name="auth_generate_id_desc">Buat ID otomatis</string>
+    <string name="auth_generate_id_button">Buat ID Otomatis</string>
+    <string name="auth_created_id_preview_label">ID User untuk masuk nanti</string>
+    <string name="auth_created_id_copied">ID disalin!</string>
+    <string name="auth_saved_id_chip">ID tersimpan: @%1$s</string>
+    <string name="auth_sign_in_id_google">Masuk dengan ID &amp; Google</string>
+    <string name="auth_register_id_google">Buat ID &amp; Daftar dengan Google</string>
+    <string name="auth_quick_google_login">Lupa ID? Masuk langsung dengan Google</string>
+    <string name="auth_switch_to_register">Belum punya ID? Buat ID di Daftar</string>
+    <string name="auth_switch_to_login">Sudah punya ID? Masuk di sini</string>
+    <string name="auth_feature_chat">Chat Real-Time</string>
+    <string name="auth_feature_media">Foto, Video &amp; File</string>
+    <string name="auth_feature_video_call">Video Call HD</string>
+    <string name="auth_privacy_note">ID User Anda tersimpan unik di Firestore &amp; diamankan dengan verifikasi Google Sign-In.</string>
+    <string name="created_id_dialog_title">ID User Berhasil Dibuat!</string>
+    <string name="created_id_dialog_desc">Simpan ID User ini. Anda akan menggunakannya untuk masuk kembali ke Partner Bank atau dibagikan ke teman agar mereka dapat menemukan Anda.</string>
+    <string name="created_id_dialog_start">Mulai Mengobrol</string>
+
+    <!-- Navigation -->
+    <string name="nav_chats">Obrolan</string>
+    <string name="nav_calls">Panggilan</string>
+    <string name="nav_contacts">Kontak</string>
+    <string name="nav_profile">Profil</string>
+
+    <!-- Chats List -->
+    <string name="search_chats_hint">Cari obrolan atau pesan…</string>
+    <string name="empty_chats_title">Belum ada obrolan</string>
+    <string name="empty_chats_subtitle">Mulai obrolan baru dengan teman di tab Kontak atau buka Catatan Pribadi untuk mencoba kirim foto, video, dan file.</string>
+    <string name="saved_messages_title">Catatan Pribadi (Anda)</string>
+    <string name="saved_messages_subtitle">Simpan catatan, foto, video &amp; uji panggilan</string>
+    <string name="new_chat_fab">Obrolan baru</string>
+    <string name="new_group_action">Buat Grup Baru</string>
+
+    <!-- Chat Detail -->
+    <string name="message_input_hint">Ketik pesan…</string>
+    <string name="caption_input_hint">Tambahkan keterangan foto (opsional)…</string>
+    <string name="attach_file_desc">Lampirkan file</string>
+    <string name="gallery_picker_desc">Pilih gambar dari galeri</string>
+    <string name="camera_capture_desc">Ambil foto dengan kamera</string>
+    <string name="send_message_desc">Kirim pesan</string>
+    <string name="media_uploading_label">Mengunggah ke Firebase Storage…</string>
+    <string name="remove_selected_image_desc">Hapus gambar dari pilihan</string>
+    <string name="add_more_images_desc">Tambah gambar dari galeri</string>
+    <string name="video_call_desc">Panggilan video</string>
+    <string name="voice_call_desc">Panggilan suara</string>
+    <string name="back_desc">Kembali</string>
+    <string name="attach_sheet_title">Kirim Lampiran</string>
+    <string name="attach_camera">Kamera</string>
+    <string name="attach_gallery">Galeri Foto</string>
+    <string name="attach_video">Video</string>
+    <string name="attach_document">Dokumen &amp; File</string>
+    <string name="message_deleted_placeholder">Pesan ini telah dihapus</string>
+    <string name="reply_action">Balas</string>
+    <string name="delete_action">Hapus</string>
+    <string name="open_file_action">Buka File</string>
+    <string name="cancel_reply_desc">Batalkan balasan</string>
+    <string name="message_info_action">Info Pesan</string>
+    <string name="message_info_title">Info Status Pesan</string>
+    <string name="receipt_sending">Mengirim</string>
+    <string name="receipt_sent">Terkirim</string>
+    <string name="receipt_delivered">Tersampaikan</string>
+    <string name="receipt_read">Dibaca</string>
+    <string name="message_info_waiting">Menunggu perangkat penerima</string>
+    <string name="message_info_not_read">Belum dibaca</string>
+    <string name="voice_record_desc">Rekam pesan suara</string>
+    <string name="voice_record_cancel_desc">Batalkan rekaman suara</string>
+    <string name="voice_record_send_desc">Kirim pesan suara</string>
+    <string name="voice_recording_label">Merekam suara…</string>
+    <string name="voice_note_label">Pesan suara</string>
+    <string name="voice_play_desc">Putar pesan suara</string>
+    <string name="voice_pause_desc">Jeda pesan suara</string>
+    <string name="voice_permission_needed">Izin mikrofon diperlukan untuk merekam pesan suara.</string>
+    <string name="forward_action">Teruskan</string>
+    <string name="copy_action">Salin</string>
+    <string name="forwarded_label">Diteruskan</string>
+    <string name="message_copied_notice">Pesan disalin ke papan klip</string>
+    <string name="message_actions_title">Tindakan Pesan</string>
+    <string name="forward_sheet_title">Teruskan Pesan</string>
+    <string name="forward_search_hint">Cari obrolan atau kontak…</string>
+    <string name="forward_recent_chats_header">Obrolan Terbaru</string>
+    <string name="forward_contacts_header">Kontak Lainnya</string>
+    <string name="forward_empty_targets">Belum ada obrolan atau kontak yang cocok.</string>
+    <string name="forward_confirm_button">Teruskan (%1$d)</string>
+    <string name="forward_select_prompt">Pilih minimal 1 tujuan</string>
+    <string name="delete_dialog_title">Hapus Pesan?</string>
+    <string name="delete_dialog_desc_outgoing">Pilih apakah Anda ingin menghapus pesan ini untuk semua orang di obrolan atau hanya untuk Anda sendiri.</string>
+    <string name="delete_dialog_desc_incoming">Pesan ini akan dihapus dari tampilan obrolan Anda saja.</string>
+    <string name="delete_for_everyone_action">Hapus untuk semua</string>
+    <string name="delete_for_me_action">Hapus untuk saya</string>
+    <string name="chat_select_messages_action">Pilih Pesan</string>
+    <string name="chat_select_messages_desc">Pilih pesan untuk dihapus</string>
+    <string name="bulk_delete_messages_title">Hapus %1$d Pesan?</string>
+    <string name="bulk_delete_messages_all_title">Hapus Semua Pesan?</string>
+    <string name="bulk_delete_messages_desc_outgoing">Pilih apakah Anda ingin menghapus %1$d pesan terpilih untuk semua orang di obrolan atau hanya untuk Anda sendiri.</string>
+    <string name="bulk_delete_messages_desc_for_me">%1$d pesan yang dipilih akan dihapus dari tampilan obrolan Anda.</string>
+    <string name="delete_for_everyone_count_action">Hapus untuk semua (%1$d)</string>
+    <string name="delete_for_me_count_action">Hapus untuk saya (%1$d)</string>
+    <string name="select_to_delete_menu_action">Pilih untuk Hapus</string>
+
+    <!-- Video & Voice Call -->
+    <string name="call_incoming_video">Panggilan Video Masuk…</string>
+    <string name="call_incoming_voice">Panggilan Suara Masuk…</string>
+    <string name="call_ringing">Memanggil…</string>
+    <string name="call_connected">Terhubung</string>
+    <string name="call_accept">Terima</string>
+    <string name="call_decline">Tolak</string>
+    <string name="call_end">Akhiri</string>
+    <string name="call_mute">Bisukan</string>
+    <string name="call_unmute">Suara</string>
+    <string name="call_camera">Kamera</string>
+    <string name="call_flip">Balik</string>
+    <string name="call_speaker">Speaker</string>
+    <string name="call_permission_title">Izin Kamera &amp; Mikrofon Diperlukan</string>
+    <string name="call_permission_desc">Berikan izin kamera dan mikrofon agar Anda dapat melakukan panggilan video dengan jelas.</string>
+    <string name="call_grant_permission">Berikan Izin</string>
+    <string name="call_chat_title">Obrolan Langsung</string>
+    <string name="call_chat_empty">Kirim pesan, foto, atau file sambil tetap video call di layar yang sama.</string>
+    <string name="call_chat_input_hint">Ketik pesan saat video call…</string>
+    <string name="call_chat_quick_hint">Tulis pesan cepat…</string>
+    <string name="call_mode_split">Video + Chat</string>
+    <string name="call_mode_overlay">Overlay</string>
+    <string name="call_mode_fullscreen">Fokus Video</string>
+    <string name="call_chat_toggle_desc">Ubah tampilan chat saat panggilan</string>
+    <string name="call_chat_attach_title">Kirim File Saat Panggilan</string>
+    <string name="call_badge_live">LIVE</string>
+
+    <!-- Calls Tab -->
+    <string name="empty_calls_title">Belum ada riwayat panggilan</string>
+    <string name="empty_calls_subtitle">Ketuk ikon video atau telepon di ruang obrolan atau tab Kontak untuk memulai panggilan.</string>
+
+    <!-- Contacts Tab -->
+    <string name="contacts_search_hint">Cari kontak Partner Bank…</string>
+    <string name="contacts_add_by_id">Cari dengan ID Partner Bank</string>
+    <string name="contacts_id_dialog_title">Mulai Obrolan via ID</string>
+    <string name="contacts_id_dialog_hint">Masukkan ID Partner Bank teman</string>
+    <string name="contacts_create_group_title">Buat Grup Obrolan</string>
+    <string name="contacts_group_name_hint">Nama grup (mis. Keluarga, Tim Proyek)</string>
+
+    <!-- Profile Tab -->
+    <string name="profile_display_name">Nama Tampilan</string>
+    <string name="profile_status">Info / Status</string>
+    <string name="profile_email_label">Email Terhubung</string>
+    <string name="profile_discoverable_title">Tampilkan di Direktori Kontak</string>
+    <string name="profile_discoverable_desc">Izinkan pengguna Partner Bank lain menemukan profil Anda untuk mulai mengobrol.</string>
+    <string name="profile_id_label">ID Partner Bank Anda</string>
+    <string name="profile_copy_id">Salin ID</string>
+    <string name="profile_save">Simpan Profil</string>
+    <string name="profile_sign_out">Keluar Akun</string>
+    <string name="profile_change_photo">Ubah Foto Profil</string>
+    <string name="profile_pick_gallery">Pilih dari Galeri</string>
+    <string name="profile_take_photo">Ambil Foto Kamera</string>
+    <string name="profile_remove_photo">Hapus Foto Kustom</string>
+    <string name="profile_edit_section">Edit Informasi Profil</string>
+
+    <!-- Common -->
+    <string name="action_cancel">Batal</string>
+    <string name="action_create">Buat</string>
+    <string name="action_start_chat">Mulai Chat</string>
+    <string name="action_retry">Coba Lagi</string>
+    <string name="status_online">Online</string>
+    <string name="status_offline">Offline</string>
+
+    <!-- Multi-Select & Bulk Delete -->
+    <string name="select_items_desc">Pilih untuk menghapus</string>
+    <string name="selection_close_desc">Batalkan pilihan</string>
+    <string name="selection_count_label">%1$d dipilih</string>
+    <string name="selection_prompt_label">Pilih item</string>
+    <string name="select_all_action">Pilih Semua</string>
+    <string name="deselect_all_action">Batal Semua</string>
+    <string name="delete_selected_action">Hapus (%1$d)</string>
+    <string name="bulk_delete_chats_title">Hapus %1$d Obrolan?</string>
+    <string name="bulk_delete_chats_all_title">Hapus Semua Obrolan?</string>
+    <string name="bulk_delete_chats_desc">Obrolan yang dipilih akan dihapus dari daftar obrolan Anda.</string>
+    <string name="bulk_delete_calls_title">Hapus %1$d Panggilan?</string>
+    <string name="bulk_delete_calls_all_title">Hapus Semua Riwayat Panggilan?</string>
+    <string name="bulk_delete_calls_desc">Riwayat panggilan yang dipilih akan dihapus dari daftar panggilan Anda.</string>
+    <string name="bulk_delete_contacts_title">Hapus %1$d Kontak?</string>
+    <string name="bulk_delete_contacts_all_title">Hapus Semua Kontak?</string>
+    <string name="bulk_delete_contacts_desc">Kontak yang dipilih akan dihapus dari daftar kontak Anda. Anda masih dapat mencarinya lagi lewat ID atau memulihkannya.</string>
+    <string name="restore_hidden_contacts_label">%1$d kontak terhapus • Pulihkan</string>
+
+    <!-- App Info -->
+    <string name="app_info_menu_title">Info Aplikasi</string>
+    <string name="app_info_menu_subtitle">Tentang Partner Bank &amp; pembuat aplikasi</string>
+    <string name="app_info_more_options_desc">Menu lainnya</string>
+    <string name="app_info_about_heading">Tentang Aplikasi</string>
+    <string name="app_info_about_body">Partner Bank adalah aplikasi komunikasi real-time untuk obrolan, berbagi foto, video, dokumen, pesan suara, serta panggilan suara dan video.</string>
+    <string name="app_info_creator_label">Dibuat Oleh</string>
+    <string name="app_info_creator_value">Suheriadi</string>
+    <string name="app_info_date_label">Tanggal Pembuatan</string>
+    <string name="app_info_date_value">19 November 2026</string>
+    <string name="app_info_credit_statement">Aplikasi ini dibuat oleh Suheriadi pada tanggal 19 November 2026.</string>
+    <string name="app_info_version_label">Versi %1$s</string>
+    <string name="action_close">Tutup</string>
+
+    <!-- Theme / Dark Mode -->
+    <string name="dark_mode_title">Mode Gelap</string>
+    <string name="dark_mode_on_subtitle">Aktif • Tampilan gelap nyaman di mata</string>
+    <string name="dark_mode_off_subtitle">Nonaktif • Tampilan terang standar</string>
+    <string name="dark_mode_toggle_to_dark_desc">Aktifkan mode gelap</string>
+    <string name="dark_mode_toggle_to_light_desc">Aktifkan mode terang</string>
+
+    <!-- Notifications & Tones -->
+    <string name="notif_menu_title">Notifikasi &amp; Nada</string>
+    <string name="notif_menu_subtitle_format">Obrolan: %1$s • Panggilan: %2$s</string>
+    <string name="notif_sheet_title">Notifikasi &amp; Nada</string>
+    <string name="notif_sheet_subtitle">Atur notifikasi obrolan dan panggilan masuk beserta nada pilihan Anda.</string>
+    <string name="notif_permission_title">Izin Notifikasi Belum Aktif</string>
+    <string name="notif_permission_desc">Izinkan notifikasi agar pesan obrolan dan panggilan masuk muncul di bilah notifikasi perangkat.</string>
+    <string name="notif_permission_grant">Izinkan Notifikasi</string>
+    <string name="notif_permission_granted_badge">Izin aktif</string>
+    <string name="notif_chat_toggle_title">Notifikasi Obrolan Masuk</string>
+    <string name="notif_chat_toggle_desc">Tampilkan notifikasi dan putar nada saat ada pesan baru.</string>
+    <string name="notif_call_toggle_title">Notifikasi Panggilan Masuk</string>
+    <string name="notif_call_toggle_desc">Tampilkan notifikasi panggilan dan putar nada dering saat ada panggilan masuk.</string>
+    <string name="notif_vibration_title">Getar Saat Notifikasi</string>
+    <string name="notif_vibration_desc">Getarkan perangkat ketika pesan atau panggilan masuk diterima.</string>
+    <string name="notif_chat_tone_label">Nada Notifikasi Obrolan</string>
+    <string name="notif_call_tone_label">Nada Dering Panggilan</string>
+    <string name="notif_tone_picker_chat_title">Pilih Nada Obrolan</string>
+    <string name="notif_tone_picker_call_title">Pilih Nada Dering Panggilan</string>
+    <string name="notif_tone_section_builtin">Nada Partner Bank</string>
+    <string name="notif_tone_section_system">Nada Perangkat</string>
+    <string name="notif_tone_pick_from_system">Pilih dari Nada Sistem Android</string>
+    <string name="notif_tone_play_desc">Putar pratinjau nada</string>
+    <string name="notif_tone_stop_desc">Hentikan pratinjau nada</string>
+    <string name="notif_test_section_title">Uji Notifikasi &amp; Nada</string>
+    <string name="notif_test_chat_button">Uji Obrolan</string>
+    <string name="notif_test_call_button">Uji Panggilan</string>
+    <string name="notif_test_call_stop_button">Hentikan Dering</string>
+    <string name="notif_banner_open_chat">Buka</string>
+    <string name="notif_banner_dismiss_desc">Tutup notifikasi</string>
+    <string name="notif_channel_chat_name">Obrolan Masuk</string>
+    <string name="notif_channel_chat_desc">Notifikasi untuk pesan obrolan baru di Partner Bank</string>
+    <string name="notif_channel_call_name">Panggilan Masuk</string>
+    <string name="notif_channel_call_desc">Notifikasi untuk panggilan suara dan video masuk di Partner Bank</string>
+    <string name="notif_channel_service_name">Layanan Notifikasi Latar Belakang</string>
+    <string name="notif_channel_service_desc">Menjaga koneksi real-time agar notifikasi obrolan dan panggilan tetap muncul saat membuka aplikasi lain</string>
+    <string name="notif_service_title">Partner Bank aktif</string>
+    <string name="notif_service_body">Menjaga notifikasi obrolan &amp; panggilan masuk tetap aktif</string>
+    <string name="notif_background_toggle_title">Notifikasi Saat Buka Aplikasi Lain</string>
+    <string name="notif_background_toggle_desc">Jalankan layanan latar belakang agar notifikasi obrolan &amp; panggilan langsung muncul meski sedang membuka aplikasi lain.</string>
+    <string name="notif_background_active_badge">Latar belakang aktif</string>
+    <string name="call_mute_ringtone_desc">Senyapkan nada dering</string>
+    <string name="call_ringtone_active_format">Nada: %1$s</string>
+</resources>

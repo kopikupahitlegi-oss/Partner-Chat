@@ -1,0 +1,106 @@
+name: Build Partner Bank APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: Build & Publish Signed APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle 9.3.1
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.3.1"
+
+      - name: Prepare signing keystore & environment
+        run: |
+          if [ -f "debug.keystore.base64" ]; then
+            base64 -d debug.keystore.base64 > debug.keystore
+            echo "Decoded debug.keystore from debug.keystore.base64"
+          else
+            keytool -genkeypair -v \
+              -keystore debug.keystore \
+              -storepass android \
+              -alias androiddebugkey \
+              -keypass android \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+            echo "Generated fallback debug.keystore"
+          fi
+
+          if [ ! -f ".env" ] && [ -f ".env.example" ]; then
+            cp .env.example .env
+          fi
+
+      - name: Accept Android SDK licenses
+        run: |
+          SDK_MANAGER="${ANDROID_HOME:-$ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager"
+          if [ -x "$SDK_MANAGER" ]; then
+            yes | "$SDK_MANAGER" --licenses > /dev/null 2>&1 || true
+          fi
+
+      - name: Build signed APK
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Prepare versioned APK file
+        id: apk
+        run: |
+          TAG_NAME="v1.0-build-${GITHUB_RUN_NUMBER}"
+          APK_NAME="PartnerBank-${TAG_NAME}.apk"
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk "dist/${APK_NAME}"
+          APK_SIZE=$(du -h "dist/${APK_NAME}" | cut -f1)
+          echo "tag_name=${TAG_NAME}" >> "$GITHUB_OUTPUT"
+          echo "apk_name=${APK_NAME}" >> "$GITHUB_OUTPUT"
+          echo "apk_path=dist/${APK_NAME}" >> "$GITHUB_OUTPUT"
+          echo "apk_size=${APK_SIZE}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload APK as Workflow Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.apk.outputs.apk_name }}
+          path: ${{ steps.apk.outputs.apk_path }}
+          retention-days: 30
+
+      - name: Publish Direct APK Download via GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="${{ steps.apk.outputs.tag_name }}"
+          APK_PATH="${{ steps.apk.outputs.apk_path }}"
+          APK_NAME="${{ steps.apk.outputs.apk_name }}"
+          COMMIT_MSG=$(git log -1 --pretty=%s)
+
+          printf "Build otomatis untuk **Partner Bank** (%s).\n\n**Perubahan terakhir:** %s\n\nKlik file **\`%s\`** di bagian **Assets** di bawah untuk langsung mengunduh dan menginstal APK di HP Android Anda.\n" \
+            "$TAG_NAME" "$COMMIT_MSG" "$APK_NAME" > dist/release-notes.md
+
+          gh release create "$TAG_NAME" "$APK_PATH" \
+            --title "Partner Bank ${TAG_NAME}" \
+            --notes-file dist/release-notes.md \
+            --latest
+
+          DIRECT_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG_NAME}/${APK_NAME}"
+          RELEASE_URL="https://github.com/${GITHUB_REPOSITORY}/releases/tag/${TAG_NAME}"
+          echo "### Partner Bank APK Siap Diunduh" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **File:** \`${APK_NAME}\` (${{ steps.apk.outputs.apk_size }})" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Unduh Langsung (.apk):** [${APK_NAME}](${DIRECT_URL})" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Halaman Release:** [Buka Release ${TAG_NAME}](${RELEASE_URL})" >> "$GITHUB_STEP_SUMMARY"

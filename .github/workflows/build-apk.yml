@@ -25,17 +25,38 @@ jobs:
           distribution: temurin
           java-version: "21"
 
+      - name: Set up Android SDK & install API 36.1
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android SDK licenses & install required SDK packages
+        run: |
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          sdkmanager --update || true
+          sdkmanager "platform-tools" "build-tools;36.0.0" "platforms;android-36"
+          sdkmanager "platforms;android-36.1" || true
+
       - name: Set up Gradle 9.3.1
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "9.3.1"
 
+      - name: Verify Gradle & Java environment
+        run: |
+          which gradle
+          gradle --version
+
       - name: Prepare signing keystore & environment
         run: |
-          if [ -f "debug.keystore.base64" ]; then
-            base64 -d debug.keystore.base64 > debug.keystore
-            echo "Decoded debug.keystore from debug.keystore.base64"
-          else
+          if [ -f "debug.keystore.base64" ] && [ -s "debug.keystore.base64" ]; then
+            if tr -d '\r\n ' < debug.keystore.base64 | base64 -d > debug.keystore && \
+               keytool -list -keystore debug.keystore -storepass android > /dev/null 2>&1; then
+              echo "Decoded valid debug.keystore from debug.keystore.base64"
+            else
+              rm -f debug.keystore
+            fi
+          fi
+
+          if [ ! -f "debug.keystore" ]; then
             keytool -genkeypair -v \
               -keystore debug.keystore \
               -storepass android \
@@ -50,20 +71,18 @@ jobs:
             cp .env.example .env
           fi
 
-      - name: Accept Android SDK licenses
-        run: |
-          SDK_MANAGER="${ANDROID_HOME:-$ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager"
-          if [ -x "$SDK_MANAGER" ]; then
-            yes | "$SDK_MANAGER" --licenses > /dev/null 2>&1 || true
-          fi
-
       - name: Build signed APK
-        run: gradle :app:assembleDebug --no-daemon --stacktrace
+        env:
+          GRADLE_OPTS: "-Xmx4g -Dorg.gradle.jvmargs=-Xmx4g"
+        run: gradle :app:assembleDebug --no-configuration-cache --stacktrace
 
       - name: Prepare versioned APK file
         id: apk
         run: |
           TAG_NAME="v1.0-build-${GITHUB_RUN_NUMBER}"
+          if [ "${GITHUB_RUN_ATTEMPT:-1}" -gt 1 ]; then
+            TAG_NAME="${TAG_NAME}-r${GITHUB_RUN_ATTEMPT}"
+          fi
           APK_NAME="PartnerBank-${TAG_NAME}.apk"
           mkdir -p dist
           cp app/build/outputs/apk/debug/app-debug.apk "dist/${APK_NAME}"
@@ -87,20 +106,35 @@ jobs:
           TAG_NAME="${{ steps.apk.outputs.tag_name }}"
           APK_PATH="${{ steps.apk.outputs.apk_path }}"
           APK_NAME="${{ steps.apk.outputs.apk_name }}"
-          COMMIT_MSG=$(git log -1 --pretty=%s)
+          COMMIT_MSG=$(git log -1 --pretty=%s || echo "Update Partner Bank")
 
           printf "Build otomatis untuk **Partner Bank** (%s).\n\n**Perubahan terakhir:** %s\n\nKlik file **\`%s\`** di bagian **Assets** di bawah untuk langsung mengunduh dan menginstal APK di HP Android Anda.\n" \
             "$TAG_NAME" "$COMMIT_MSG" "$APK_NAME" > dist/release-notes.md
 
-          gh release create "$TAG_NAME" "$APK_PATH" \
+          if gh release view "$TAG_NAME" > /dev/null 2>&1; then
+            gh release upload "$TAG_NAME" "$APK_PATH" --clobber
+            RELEASE_OK=true
+          elif gh release create "$TAG_NAME" "$APK_PATH" \
+            --target "$GITHUB_SHA" \
             --title "Partner Bank ${TAG_NAME}" \
             --notes-file dist/release-notes.md \
-            --latest
+            --latest; then
+            RELEASE_OK=true
+          else
+            RELEASE_OK=false
+          fi
 
-          DIRECT_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG_NAME}/${APK_NAME}"
-          RELEASE_URL="https://github.com/${GITHUB_REPOSITORY}/releases/tag/${TAG_NAME}"
-          echo "### Partner Bank APK Siap Diunduh" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **File:** \`${APK_NAME}\` (${{ steps.apk.outputs.apk_size }})" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Unduh Langsung (.apk):** [${APK_NAME}](${DIRECT_URL})" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Halaman Release:** [Buka Release ${TAG_NAME}](${RELEASE_URL})" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$RELEASE_OK" = "true" ]; then
+            DIRECT_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG_NAME}/${APK_NAME}"
+            RELEASE_URL="https://github.com/${GITHUB_REPOSITORY}/releases/tag/${TAG_NAME}"
+            echo "### Partner Bank APK Siap Diunduh" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "- **File:** \`${APK_NAME}\` (${{ steps.apk.outputs.apk_size }})" >> "$GITHUB_STEP_SUMMARY"
+            echo "- **Unduh Langsung (.apk):** [${APK_NAME}](${DIRECT_URL})" >> "$GITHUB_STEP_SUMMARY"
+            echo "- **Halaman Release:** [Buka Release ${TAG_NAME}](${RELEASE_URL})" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "### Partner Bank APK Berhasil Dibuild (Tersedia di Artifacts)" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "- **File:** \`${APK_NAME}\` (${{ steps.apk.outputs.apk_size }}) sudah tersedia di bagian **Artifacts** di bawah." >> "$GITHUB_STEP_SUMMARY"
+            echo "- Untuk mengaktifkan link unduh langsung di **Releases**, buka **Settings > Actions > General > Workflow permissions** lalu pilih **Read and write permissions**." >> "$GITHUB_STEP_SUMMARY"
+          fi
